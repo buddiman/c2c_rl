@@ -1,12 +1,27 @@
 import random
+from typing import Optional, Union
+
 import numpy as np
 import gym
 from gym import spaces
+from gym.core import ObsType
 
 REWARD_LOWER_BOUND = 0
 REWARD_UPPER_BOUND = 10
 
 MAX_STEPS = 100
+
+# Rewards (make this configurable)
+REWARD_GOOD_SMALL = 0.1
+REWARD_BAD_SMALL = -0.1
+REWARD_GOOD_NORMAL = 1.0
+REWARD_BAD_NORMAL = -1.0
+REWARD_GOOD_MEDIUM = 3.0
+REWARD_BAD_MEDIUM = -3.0
+REWARD_GOOD_HIGH = 5.0
+REWARD_BAD_HIGH = -5.0
+REWARD_GOOD_END = 10.0
+REWARD_BAD_END = -10.0
 
 
 class ReplaceTokenEnvironment(gym.Env):
@@ -27,6 +42,14 @@ class ReplaceTokenEnvironment(gym.Env):
         # Define reward space
 
         self.current_action = None
+        self.current_position = 0  # TODO: Set to random position on start?
+
+    def render(self, mode="human"):
+        pass
+
+    def reset(self, *, seed: Optional[int] = None, return_info: bool = False, options: Optional[dict] = None) -> Union[
+        ObsType, tuple[ObsType, dict]]:
+        pass
 
     def step(self, action):
         """
@@ -48,10 +71,10 @@ class ReplaceTokenEnvironment(gym.Env):
             pass
         elif action == 2:
             # Move left
-            pass
+            self.move_left()
         elif action == 3:
             # Move right
-            pass
+            self.move_right()
 
     def replace(self):
         """
@@ -72,14 +95,25 @@ class ReplaceTokenEnvironment(gym.Env):
         Move the current position to the token to the left.
         :return:
         """
-        pass
+        reward = 0.0
+        if self.current_position > 0:
+            self.current_position -= 1
+            reward = REWARD_GOOD_SMALL
+        else:
+            reward = REWARD_BAD_END  # Never go left when index = 0
+        return reward
 
     def move_right(self):
         """
         Move the current position to the token to the right.
         :return:
         """
-        pass
+        reward = 0.0
+        if self.current_position < 100000:      # TODO: Set to max length of Line when implemented
+            self.current_position += 1
+            reward = REWARD_GOOD_NORMAL
+        else:
+            reward = REWARD_BAD_END  # Never go right when index = max
 
     def load_vocabulary(self):
         """
