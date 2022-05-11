@@ -39,17 +39,20 @@ class ReplaceTokenEnvironment(gym.Env):
         self.action_space = spaces.Discrete(len(self.actions))
 
         # Define observation space
-        # Define reward space
+        self.observation_space = spaces.Box(low=np.array([0]),
+                                            high=np.array([100]))  # TODO: real upper boundaries from vocabulary
 
+        # Define current position
+        self.current_position = 0
+
+        # Define current action
         self.current_action = None
-        self.current_position = 0  # TODO: Set to random position on start?
 
     def render(self, mode="human"):
         pass
 
-    def reset(self, *, seed: Optional[int] = None, return_info: bool = False, options: Optional[dict] = None) -> Union[
-        ObsType, tuple[ObsType, dict]]:
-        pass
+    def reset(self, *, seed: Optional[int] = None, return_info: bool = False, options: Optional[dict] = None):
+        self.current_position = 0
 
     def step(self, action):
         """
@@ -71,10 +74,16 @@ class ReplaceTokenEnvironment(gym.Env):
             pass
         elif action == 2:
             # Move left
-            self.move_left()
+            reward = self.move_left()
         elif action == 3:
             # Move right
-            self.move_right()
+            reward = self.move_right()
+
+        # Check if done
+        if reward == REWARD_GOOD_END or reward == REWARD_BAD_END:
+            done = True
+
+        return self.current_position, reward, done, {}
 
     def replace(self):
         """
@@ -109,11 +118,12 @@ class ReplaceTokenEnvironment(gym.Env):
         :return:
         """
         reward = 0.0
-        if self.current_position < 100000:      # TODO: Set to max length of Line when implemented
+        if self.current_position < 100000:  # TODO: Set to max length of Line when implemented
             self.current_position += 1
             reward = REWARD_GOOD_NORMAL
         else:
             reward = REWARD_BAD_END  # Never go right when index = max
+        return reward
 
     def load_vocabulary(self):
         """
