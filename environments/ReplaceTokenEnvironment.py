@@ -60,7 +60,7 @@ class ReplaceTokenEnvironment(gym.Env):
         :param action:
         :return:
         """
-        reward = 0
+        reward = 0.0
         done = False
 
         self.current_action = action
@@ -68,10 +68,10 @@ class ReplaceTokenEnvironment(gym.Env):
         # Handle actions
         if action == 0:
             # Replace
-            pass
+            reward = 0.0
         elif action == 1:
             # Keep
-            pass
+            reward = 0.0
         elif action == 2:
             # Move left
             reward = self.move_left()
