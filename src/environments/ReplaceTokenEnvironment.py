@@ -6,6 +6,8 @@ import gym
 from gym import spaces
 from gym.core import ObsType
 
+from src.utils.tokenizer import SimpleTokenizer
+
 REWARD_LOWER_BOUND = 0
 REWARD_UPPER_BOUND = 10
 
@@ -29,8 +31,11 @@ class ReplaceTokenEnvironment(gym.Env):
     A token replace environment.
     """
 
-    def __init__(self):
-        # Load Vocabulary
+    def __init__(self, tokenizer: SimpleTokenizer):
+        # Define vocabulary
+        self.tokenizer = tokenizer
+        self.vocabulary = self.tokenizer.get_vocabulary()
+        self.vocabulary_size = self.tokenizer.get_vocabulary_size()
 
         # Define actions
         self.actions = ["REPLACE", "KEEP", "MOVE_LEFT", "MOVE_RIGHT"]
@@ -124,10 +129,3 @@ class ReplaceTokenEnvironment(gym.Env):
         else:
             reward = REWARD_BAD_END  # Never go right when index = max
         return reward
-
-    def load_vocabulary(self):
-        """
-        Load the vocabulary from a file.
-        :return:
-        """
-        pass
