@@ -1,0 +1,11 @@
+import sys
+x = 5
+num = 5 + 4 - 3
+print(num)
+print("number is", num)
+def function():
+def another_function(arg, brg, crg):
+my_super_long_var_name_text = "Hello World"
+super_long_string = "And if the band you're in is playing different tunes, I see you on the dark side of the moon"
+math_expression = 2 * 2*2 + (5 - 3)
+while(True):
