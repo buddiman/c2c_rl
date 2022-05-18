@@ -1,4 +1,4 @@
-from environments.ReplaceTokenEnvironment import ReplaceTokenEnvironment
+from src.environments import ReplaceTokenEnvironment
 
 if __name__ == '__main__':
     env = ReplaceTokenEnvironment()
