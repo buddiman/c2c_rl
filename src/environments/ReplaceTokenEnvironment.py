@@ -37,6 +37,9 @@ class ReplaceTokenEnvironment(gym.Env):
         self.vocabulary = self.tokenizer.get_vocabulary()
         self.vocabulary_size = self.tokenizer.get_vocabulary_size()
 
+        # data
+        self.data = []
+
         # Define actions
         self.actions = ["REPLACE", "KEEP", "MOVE_LEFT", "MOVE_RIGHT"]
 
@@ -129,3 +132,7 @@ class ReplaceTokenEnvironment(gym.Env):
         else:
             reward = REWARD_BAD_END  # Never go right when index = max
         return reward
+
+    def load_data(self, dataset):
+        with open(dataset) as file:
+            self.data = file.readlines()

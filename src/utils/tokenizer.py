@@ -25,8 +25,8 @@ class SimpleTokenizer:
         return self.tokenizer.decode(tokens)
 
     def get_vocabulary(self):
-        return self.tokenizer.get_vocabulary()
+        return self.tokenizer.get_vocab()
 
     def get_vocabulary_size(self):
-        return self.tokenizer.get_vocabulary_size()
+        return self.tokenizer.get_vocab_size()
 
