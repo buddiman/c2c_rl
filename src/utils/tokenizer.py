@@ -15,3 +15,12 @@ class SimpleTokenizer:
         self.tokenizer.train(datasets, trainer)
         self.tokenizer.save("data/tokenizers/" + name)
 
+    def load(self, name):
+        self.tokenizer = Tokenizer.from_file("data/tokenizers/" + name)
+
+    def encode(self, text):
+        return self.tokenizer.encode(text)
+
+    def decode(self, tokens):
+        return self.tokenizer.decode(tokens)
+
