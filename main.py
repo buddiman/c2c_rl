@@ -15,7 +15,6 @@ if __name__ == '__main__':
 
     env = ReplaceTokenEnvironment.ReplaceTokenEnvironment(tokenizer)
     env.load_data("data/test/oneliners.data")
-    env.load_new_line()
 
     while True:
         action = env.action_space.sample()
@@ -23,7 +22,6 @@ if __name__ == '__main__':
         env.render()
 
         if done:
-            #env.reset()
-            break
+            env.reset()
 
     env.close()

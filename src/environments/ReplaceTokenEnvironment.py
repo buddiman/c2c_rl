@@ -49,9 +49,10 @@ class ReplaceTokenEnvironment(gym.Env):
         self.unmasked_line = ""
         self.tokenized_line_unmasked = []
         self.tokenized_line_masked = []
+        self.masked_token_position = 0
 
         # Define actions
-        self.actions = ["REPLACE", "KEEP", "MOVE_LEFT", "MOVE_RIGHT"]
+        self.actions = ["REPLACE", "MOVE_LEFT", "MOVE_RIGHT"]
 
         # Define action and observation space
         self.action_space = spaces.Discrete(len(self.actions))
@@ -65,13 +66,14 @@ class ReplaceTokenEnvironment(gym.Env):
 
         # Define current action
         self.current_action = None
+        self.forced_next_action = -1
 
     def render(self, mode="ansi"): #mode="human"):
         print(self.create_terminal_string())
-        print(str(self.current_position))
         print("Action: " + self.actions[self.current_action])
 
     def reset(self, *, seed: Optional[int] = None, return_info: bool = False, options: Optional[dict] = None):
+        print(Fore.RED + "Resetting environment..." + Style.RESET_ALL)
         self.current_position = 0
 
     def step(self, action):
@@ -83,19 +85,20 @@ class ReplaceTokenEnvironment(gym.Env):
         reward = 0.0
         done = False
 
-        self.current_action = action
+        if self.forced_next_action != -1:
+            action = self.forced_next_action
+            self.forced_next_action = -1
+        else:
+            self.current_action = action
 
         # Handle actions
         if action == 0:
             # Replace
             reward = 0.0
         elif action == 1:
-            # Keep
-            reward = 0.0
-        elif action == 2:
             # Move left
             reward = self.move_left()
-        elif action == 3:
+        elif action == 2:
             # Move right
             reward = self.move_right()
 
@@ -103,16 +106,27 @@ class ReplaceTokenEnvironment(gym.Env):
         if reward == REWARD_GOOD_END or reward == REWARD_BAD_END:
             done = True
 
-        input()
+        # input()
 
-        return self.current_position, reward, done, {}
+        return self.tokenized_line_masked, reward, done, {}
 
     def replace(self):
         """
         Replace the current token.
         :return:
         """
-        pass
+        reward = 0.0
+        if self.current_position != self.masked_token_position:
+            reward = REWARD_BAD_END
+        else:
+            random_token = self.sorted_vocabulary[random.randint(0, self.vocabulary_size - 1)]
+            self.tokenized_line_masked[self.current_position] = random_token
+            if self.tokenized_line_unmasked[self.current_position] == self.tokenized_line_masked[self.current_position]:
+                reward = REWARD_GOOD_END
+            else:
+                reward = REWARD_BAD_SMALL
+                self.forced_next_action = 0
+        return reward
 
     def keep(self):
         """
@@ -150,11 +164,12 @@ class ReplaceTokenEnvironment(gym.Env):
     def load_data(self, dataset):
         with open(dataset) as file:
             self.data = file.readlines()
+        self.load_new_line()
 
     def load_new_line(self):
         if self.data_index < len(self.data):
-            self.unmasked_line = self.data[0]
-            self.masked_line = self.data[0]
+            self.unmasked_line = self.data[8]
+            self.masked_line = self.data[8]
             self.tokenized_line_unmasked = self.tokenizer.encode(self.masked_line)
             self.tokenized_line_masked = self.mask_random_token(self.tokenized_line_unmasked.ids)
             self.data_index += 1
@@ -164,6 +179,7 @@ class ReplaceTokenEnvironment(gym.Env):
         temp_tokenized_line = tokenized_line
         rnd = random.randint(0, len(temp_tokenized_line) - 1)
         temp_tokenized_line[rnd] = 0
+        self.masked_token_position = rnd
         return temp_tokenized_line
 
     def create_terminal_string(self):
