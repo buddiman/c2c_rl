@@ -1,7 +1,21 @@
 from src.environments import ReplaceTokenEnvironment
+from src.utils.tokenizer import SimpleTokenizer
+from colorama import init
+
+import os
 
 if __name__ == '__main__':
-    env = ReplaceTokenEnvironment()
+    # init colorama
+    init()
+
+    tokenizer = SimpleTokenizer()
+    #tokenizer.train_and_save([f"data/test/oneliners.data"], "oneliners.data.json")
+
+    tokenizer.load("oneliners.data.json")
+
+    env = ReplaceTokenEnvironment.ReplaceTokenEnvironment(tokenizer)
+    env.load_data("data/test/oneliners.data")
+    env.load_new_line()
 
     while True:
         action = env.action_space.sample()

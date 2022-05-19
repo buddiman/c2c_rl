@@ -1,8 +1,10 @@
 import random
+from operator import itemgetter
 from typing import Optional, Union
 
 import numpy as np
 import gym
+from colorama import Fore, Back, Style
 from gym import spaces
 from gym.core import ObsType
 
@@ -35,10 +37,18 @@ class ReplaceTokenEnvironment(gym.Env):
         # Define vocabulary
         self.tokenizer = tokenizer
         self.vocabulary = self.tokenizer.get_vocabulary()
+        self.sorted_vocabulary = sorted(self.vocabulary.items(), key=itemgetter(1))
         self.vocabulary_size = self.tokenizer.get_vocabulary_size()
 
         # data
         self.data = []
+        self.data_index = 0
+
+        # Code line
+        self.masked_line = ""
+        self.unmasked_line = ""
+        self.tokenized_line_unmasked = []
+        self.tokenized_line_masked = []
 
         # Define actions
         self.actions = ["REPLACE", "KEEP", "MOVE_LEFT", "MOVE_RIGHT"]
@@ -56,8 +66,10 @@ class ReplaceTokenEnvironment(gym.Env):
         # Define current action
         self.current_action = None
 
-    def render(self, mode="human"):
-        pass
+    def render(self, mode="ansi"): #mode="human"):
+        print(self.create_terminal_string())
+        print(str(self.current_position))
+        print("Action: " + self.actions[self.current_action])
 
     def reset(self, *, seed: Optional[int] = None, return_info: bool = False, options: Optional[dict] = None):
         self.current_position = 0
@@ -90,6 +102,8 @@ class ReplaceTokenEnvironment(gym.Env):
         # Check if done
         if reward == REWARD_GOOD_END or reward == REWARD_BAD_END:
             done = True
+
+        input()
 
         return self.current_position, reward, done, {}
 
@@ -126,7 +140,7 @@ class ReplaceTokenEnvironment(gym.Env):
         :return:
         """
         reward = 0.0
-        if self.current_position < 100000:  # TODO: Set to max length of Line when implemented
+        if self.current_position < len(self.tokenized_line_masked):
             self.current_position += 1
             reward = REWARD_GOOD_NORMAL
         else:
@@ -136,3 +150,32 @@ class ReplaceTokenEnvironment(gym.Env):
     def load_data(self, dataset):
         with open(dataset) as file:
             self.data = file.readlines()
+
+    def load_new_line(self):
+        if self.data_index < len(self.data):
+            self.unmasked_line = self.data[0]
+            self.masked_line = self.data[0]
+            self.tokenized_line_unmasked = self.tokenizer.encode(self.masked_line)
+            self.tokenized_line_masked = self.mask_random_token(self.tokenized_line_unmasked.ids)
+            self.data_index += 1
+
+    def mask_random_token(self, tokenized_line):
+        # MASK token id = 0
+        temp_tokenized_line = tokenized_line
+        rnd = random.randint(0, len(temp_tokenized_line) - 1)
+        temp_tokenized_line[rnd] = 0
+        return temp_tokenized_line
+
+    def create_terminal_string(self):
+        s = ""
+        for idx, token in enumerate(self.tokenized_line_masked):
+            if idx == self.current_position:
+                s += Back.CYAN
+
+            if token == 0:
+                s += Fore.RED + " MASK " + Style.RESET_ALL
+            else:
+                s += " " + self.sorted_vocabulary[token][0] + " " + Style.RESET_ALL
+        return s
+
+
