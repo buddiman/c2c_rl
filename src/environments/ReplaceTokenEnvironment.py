@@ -58,8 +58,7 @@ class ReplaceTokenEnvironment(gym.Env):
         self.action_space = spaces.Discrete(len(self.actions))
 
         # Define observation space
-        self.observation_space = spaces.Box(low=np.array([0]),
-                                            high=np.array([100]))  # TODO: real upper boundaries from vocabulary
+        self.observation_space = spaces.Tuple((spaces.Discrete(self.vocabulary_size), spaces.Discrete(100)))
 
         # Define current position
         self.current_position = 0
@@ -94,7 +93,7 @@ class ReplaceTokenEnvironment(gym.Env):
         # Handle actions
         if action == 0:
             # Replace
-            reward = 0.0
+            reward = self.replace()
         elif action == 1:
             # Move left
             reward = self.move_left()
@@ -106,23 +105,25 @@ class ReplaceTokenEnvironment(gym.Env):
         if reward == REWARD_GOOD_END or reward == REWARD_BAD_END:
             done = True
 
-        # input()
+        #input()
 
-        return self.tokenized_line_masked, reward, done, {}
+        return (self.tokenized_line_masked, self.current_position), reward, done, {}
 
     def replace(self):
         """
         Replace the current token.
         :return:
         """
+        finished = False
         reward = 0.0
         if self.current_position != self.masked_token_position:
             reward = REWARD_BAD_END
         else:
             random_token = self.sorted_vocabulary[random.randint(0, self.vocabulary_size - 1)]
-            self.tokenized_line_masked[self.current_position] = random_token
-            if self.tokenized_line_unmasked[self.current_position] == self.tokenized_line_masked[self.current_position]:
+            self.tokenized_line_masked[self.current_position] = random_token[1] # 0 = token, 1 = id
+            if self.tokenized_line_unmasked.ids[self.current_position] == self.tokenized_line_masked[self.current_position]:
                 reward = REWARD_GOOD_END
+                finished = True
             else:
                 reward = REWARD_BAD_SMALL
                 self.forced_next_action = 0
@@ -168,8 +169,8 @@ class ReplaceTokenEnvironment(gym.Env):
 
     def load_new_line(self):
         if self.data_index < len(self.data):
-            self.unmasked_line = self.data[8]
-            self.masked_line = self.data[8]
+            self.unmasked_line = self.data[6]
+            self.masked_line = self.data[6]
             self.tokenized_line_unmasked = self.tokenizer.encode(self.masked_line)
             self.tokenized_line_masked = self.mask_random_token(self.tokenized_line_unmasked.ids)
             self.data_index += 1
