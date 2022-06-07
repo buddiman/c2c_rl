@@ -44,6 +44,9 @@ class ReplaceTokenEnvironment(gym.Env):
         self.data = []
         self.data_index = 0
 
+        # finished indicator
+        self.finished = False
+
         # Code line
         self.masked_line = ""
         self.unmasked_line = ""
@@ -74,6 +77,7 @@ class ReplaceTokenEnvironment(gym.Env):
     def reset(self, *, seed: Optional[int] = None, return_info: bool = False, options: Optional[dict] = None):
         print(Fore.RED + "Resetting environment..." + Style.RESET_ALL)
         self.current_position = 0
+        self.finished = False
 
     def step(self, action):
         """
@@ -114,7 +118,6 @@ class ReplaceTokenEnvironment(gym.Env):
         Replace the current token.
         :return:
         """
-        finished = False
         reward = 0.0
         if self.current_position != self.masked_token_position:
             reward = REWARD_BAD_END
@@ -123,7 +126,7 @@ class ReplaceTokenEnvironment(gym.Env):
             self.tokenized_line_masked[self.current_position] = random_token[1] # 0 = token, 1 = id
             if self.tokenized_line_unmasked.ids[self.current_position] == self.tokenized_line_masked[self.current_position]:
                 reward = REWARD_GOOD_END
-                finished = True
+                self.finished = True
             else:
                 reward = REWARD_BAD_SMALL
                 self.forced_next_action = 0
@@ -169,8 +172,8 @@ class ReplaceTokenEnvironment(gym.Env):
 
     def load_new_line(self):
         if self.data_index < len(self.data):
-            self.unmasked_line = self.data[6]
-            self.masked_line = self.data[6]
+            self.unmasked_line = self.data[self.data_index]
+            self.masked_line = self.data[self.data_index]
             self.tokenized_line_unmasked = self.tokenizer.encode(self.masked_line)
             self.tokenized_line_masked = self.mask_random_token(self.tokenized_line_unmasked.ids)
             self.data_index += 1
