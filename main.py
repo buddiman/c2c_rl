@@ -3,10 +3,18 @@ from src.utils.tokenizer import SimpleTokenizer
 from colorama import init
 
 import os
+import ray
+import ray.rllib.agents.ppo as bandit
 
 if __name__ == '__main__':
     # init colorama
     init()
+
+    # init ray
+    ray.shutdown()
+    ray.init(ignore_reinit_error = True)
+
+    input("Press any key to start the program") # wait to see Dashboard URL
 
     # init and (train) load tokenizer
     tokenizer = SimpleTokenizer()

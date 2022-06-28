@@ -6,7 +6,7 @@ import numpy as np
 import gym
 from colorama import Fore, Back, Style
 from gym import spaces
-from gym.core import ObsType
+#from gym.core import ObsType
 
 from src.utils.tokenizer import SimpleTokenizer
 
