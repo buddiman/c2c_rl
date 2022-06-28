@@ -61,7 +61,11 @@ class ReplaceTokenEnvironment(gym.Env):
         self.action_space = spaces.Discrete(len(self.actions))
 
         # Define observation space
-        self.observation_space = spaces.Tuple((spaces.Discrete(self.vocabulary_size), spaces.Discrete(100)))
+        #self.observation_space = spaces.Tuple((spaces.Discrete(self.vocabulary_size), spaces.Discrete(100)))
+        self.observation_space = spaces.Dict({
+            "tokens": spaces.Box(low=0, high=100, shape=(1, 3), dtype=int),
+            "position": spaces.Discrete(100)
+        })
 
         # Define current position
         self.current_position = 0
@@ -111,7 +115,9 @@ class ReplaceTokenEnvironment(gym.Env):
 
         #input()
 
-        return (self.tokenized_line_masked, self.current_position), reward, done, {}
+        #return (self.tokenized_line_masked, self.current_position), reward, done, {}
+        #return {self.tokenized_line_masked, self.current_position}, reward, done, {}
+        return {"tokens": self.tokenized_line_masked, "position": self.current_position}, reward, done, {}
 
     def replace(self):
         """
